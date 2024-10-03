@@ -4,15 +4,10 @@
 **/.vscode/*
 **/.yarn/*
 **/.yarnrc.yml
-**/build/*
 **/coverage/*
-**/dist/*
 **/node_modules/*
 **/temp/*
 **/tmp/*
 *.tsbuildinfo
 *.tsimp
 *.log
-packages/siop-oid4vp/lib/schemas/validation/schemaValidation.js
-packages/siop-oid4vp/lib/generator/*
-!packages/siop-oid4vp/lib/generator/schemaGenerator.ts
