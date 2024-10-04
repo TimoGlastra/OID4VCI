@@ -1,0 +1,19 @@
+import { IStateManager, StateType } from '@sphereon/oid4vci-common';
+export declare class MemoryStates<T extends StateType> implements IStateManager<T> {
+    private readonly expiresInMS;
+    private readonly states;
+    private cleanupIntervalId?;
+    constructor(opts?: {
+        expiresInSec?: number;
+    });
+    clearAll(): Promise<void>;
+    clearExpired(timestamp?: number): Promise<void>;
+    delete(id: string): Promise<boolean>;
+    getAsserted(id: string): Promise<T>;
+    get(id: string): Promise<T | undefined>;
+    has(id: string): Promise<boolean>;
+    set(id: string, stateValue: T): Promise<void>;
+    startCleanupRoutine(timeout?: number): Promise<void>;
+    stopCleanupRoutine(): Promise<void>;
+}
+//# sourceMappingURL=MemoryStates.d.ts.map

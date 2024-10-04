@@ -1,0 +1,44 @@
+import { CNonceState, CredentialConfigurationSupportedV1_0_13, CredentialOfferSession, IssuerMetadata, IStateManager, JWTVerifyCallback, MetadataDisplay, TxCode, URIState } from '@sphereon/oid4vci-common';
+import { CredentialIssuerMetadataOptsV1_0_13 } from '@sphereon/oid4vci-common';
+import { VcIssuer } from '../VcIssuer';
+import { CredentialDataSupplier, CredentialSignerCallback } from '../types';
+import { IssuerMetadataBuilderV1_13 } from './IssuerMetadataBuilderV1_13';
+export declare class VcIssuerBuilder<DIDDoc extends object> {
+    issuerMetadataBuilder?: IssuerMetadataBuilderV1_13;
+    issuerMetadata: Partial<CredentialIssuerMetadataOptsV1_0_13>;
+    txCode?: TxCode;
+    defaultCredentialOfferBaseUri?: string;
+    userPinRequired?: boolean;
+    cNonceExpiresIn?: number;
+    credentialOfferStateManager?: IStateManager<CredentialOfferSession>;
+    credentialOfferURIManager?: IStateManager<URIState>;
+    cNonceStateManager?: IStateManager<CNonceState>;
+    credentialSignerCallback?: CredentialSignerCallback<DIDDoc>;
+    jwtVerifyCallback?: JWTVerifyCallback<DIDDoc>;
+    credentialDataSupplier?: CredentialDataSupplier;
+    withIssuerMetadata(issuerMetadata: IssuerMetadata): this;
+    withIssuerMetadataBuilder(builder: IssuerMetadataBuilderV1_13): this;
+    withDefaultCredentialOfferBaseUri(baseUri: string): this;
+    withCredentialIssuer(issuer: string): this;
+    withAuthorizationServers(authorizationServers: string | string[]): this;
+    withCredentialEndpoint(credentialEndpoint: string): this;
+    withBatchCredentialEndpoint(batchCredentialEndpoint: string): this;
+    withTokenEndpoint(tokenEndpoint: string): this;
+    withIssuerDisplay(issuerDisplay: MetadataDisplay[] | MetadataDisplay): this;
+    addIssuerDisplay(issuerDisplay: MetadataDisplay): this;
+    withCredentialConfigurationsSupported(credentialConfigurationsSupported: Record<string, CredentialConfigurationSupportedV1_0_13>): this;
+    addCredentialConfigurationsSupported(id: string, supportedCredential: CredentialConfigurationSupportedV1_0_13): this;
+    withTXCode(txCode: TxCode): this;
+    withCredentialOfferURIStateManager(credentialOfferURIManager: IStateManager<URIState>): this;
+    withInMemoryCredentialOfferURIState(): this;
+    withCredentialOfferStateManager(credentialOfferManager: IStateManager<CredentialOfferSession>): this;
+    withInMemoryCredentialOfferState(): this;
+    withCNonceStateManager(cNonceManager: IStateManager<CNonceState>): this;
+    withInMemoryCNonceState(): this;
+    withCNonceExpiresIn(cNonceExpiresIn: number): this;
+    withCredentialSignerCallback(cb: CredentialSignerCallback<DIDDoc>): this;
+    withJWTVerifyCallback(verifyCallback: JWTVerifyCallback<DIDDoc>): this;
+    withCredentialDataSupplier(credentialDataSupplier: CredentialDataSupplier): this;
+    build(): VcIssuer<DIDDoc>;
+}
+//# sourceMappingURL=VcIssuerBuilder.d.ts.map

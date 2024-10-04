@@ -1,0 +1,63 @@
+/// <reference types="node" />
+import { EventEmitter } from 'events';
+import { IPresentationDefinition } from '@sphereon/pex';
+import { Hasher } from '@sphereon/ssi-types';
+import { PropertyTargets } from '../authorization-request';
+import { PresentationVerificationCallback } from '../authorization-response';
+import { ClientIdScheme, CreateJwtCallback, RequestAud, VerifyJwtCallback } from '../types';
+import { AuthorizationRequestPayload, ClientMetadataOpts, ObjectBy, PassBy, RequestObjectPayload, ResponseIss, ResponseMode, ResponseType, RevocationVerification, RevocationVerificationCallback, SupportedVersion } from '../types';
+import { RP } from './RP';
+import { IRPSessionManager } from './types';
+export declare class RPBuilder {
+    requestObjectBy: ObjectBy;
+    createJwtCallback?: CreateJwtCallback;
+    verifyJwtCallback?: VerifyJwtCallback;
+    revocationVerification?: RevocationVerification;
+    revocationVerificationCallback?: RevocationVerificationCallback;
+    presentationVerificationCallback?: PresentationVerificationCallback;
+    supportedVersions: SupportedVersion[];
+    eventEmitter?: EventEmitter;
+    sessionManager?: IRPSessionManager;
+    private _authorizationRequestPayload;
+    private _requestObjectPayload;
+    clientMetadata?: ClientMetadataOpts;
+    clientId: string;
+    clientIdScheme: string;
+    hasher: Hasher;
+    private constructor();
+    withScope(scope: string, targets?: PropertyTargets): RPBuilder;
+    withResponseType(responseType: ResponseType | ResponseType[] | string, targets?: PropertyTargets): RPBuilder;
+    withHasher(hasher: Hasher): RPBuilder;
+    withClientId(clientId: string, targets?: PropertyTargets): RPBuilder;
+    withClientIdScheme(clientIdScheme: ClientIdScheme, targets?: PropertyTargets): RPBuilder;
+    withIssuer(issuer: ResponseIss, targets?: PropertyTargets): RPBuilder;
+    withAudience(issuer: RequestAud, targets?: PropertyTargets): RPBuilder;
+    withPresentationVerification(presentationVerificationCallback: PresentationVerificationCallback): RPBuilder;
+    withRevocationVerification(mode: RevocationVerification): RPBuilder;
+    withRevocationVerificationCallback(callback: RevocationVerificationCallback): RPBuilder;
+    withAuthorizationEndpoint(authorizationEndpoint: string, targets?: PropertyTargets): RPBuilder;
+    withRedirectUri(redirectUri: string, targets?: PropertyTargets): RPBuilder;
+    withResponseUri(redirectUri: string, targets?: PropertyTargets): RPBuilder;
+    withRequestByReference(referenceUri: string): RPBuilder;
+    withRequestByValue(): RPBuilder;
+    withRequestBy(passBy: PassBy, referenceUri?: string): RPBuilder;
+    withResponseMode(responseMode: ResponseMode, targets?: PropertyTargets): RPBuilder;
+    withClientMetadata(clientMetadata: ClientMetadataOpts, targets?: PropertyTargets): RPBuilder;
+    withCreateJwtCallback(createJwtCallback: CreateJwtCallback): RPBuilder;
+    withVerifyJwtCallback(verifyJwtCallback: VerifyJwtCallback): RPBuilder;
+    withPresentationDefinition(definitionOpts: {
+        definition: IPresentationDefinition;
+        definitionUri?: string;
+    }, targets?: PropertyTargets): RPBuilder;
+    private initSupportedVersions;
+    addSupportedVersion(supportedVersion: SupportedVersion): RPBuilder;
+    withSupportedVersions(supportedVersion: SupportedVersion[] | SupportedVersion): RPBuilder;
+    withEventEmitter(eventEmitter?: EventEmitter): RPBuilder;
+    withSessionManager(sessionManager: IRPSessionManager): RPBuilder;
+    getSupportedRequestVersion(requireVersion?: boolean): SupportedVersion | undefined;
+    static newInstance(supportedVersion?: SupportedVersion): RPBuilder;
+    build(): RP;
+    get authorizationRequestPayload(): Partial<AuthorizationRequestPayload>;
+    get requestObjectPayload(): Partial<RequestObjectPayload>;
+}
+//# sourceMappingURL=RPBuilder.d.ts.map

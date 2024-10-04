@@ -1,0 +1,17 @@
+import { EventManager } from '@sphereon/ssi-types';
+export type EventNames = CredentialOfferEventNames | NotificationStatusEventNames | LogEvents | CredentialEventNames;
+export declare enum CredentialOfferEventNames {
+    OID4VCI_OFFER_CREATED = "OID4VCI_OFFER_CREATED",
+    OID4VCI_OFFER_EXPIRED = "OID4VCI_OFFER_EXPIRED",
+    OID4VCI_OFFER_DELETED = "OID4VCI_OFFER_DELETED"
+}
+export declare enum CredentialEventNames {
+    OID4VCI_CREDENTIAL_ISSUED = "OID4VCI_CREDENTIAL_ISSUED"
+}
+export declare enum NotificationStatusEventNames {
+    OID4VCI_NOTIFICATION_RECEIVED = "OID4VCI_NOTIFICATION_RECEIVED",
+    OID4VCI_NOTIFICATION_PROCESSED = "OID4VCI_NOTIFICATION_PROCESSED"
+}
+export type LogEvents = 'oid4vciLog';
+export declare const EVENTS: EventManager;
+//# sourceMappingURL=index.d.ts.map
