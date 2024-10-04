@@ -88,6 +88,7 @@ export const createAuthorizationRequestUrl = async ({
   credentialConfigurationSupported,
   clientId,
   version,
+  headers
 }: {
   pkce: PKCEOpts;
   endpointMetadata: EndpointMetadataResultV1_0_13;
@@ -96,6 +97,7 @@ export const createAuthorizationRequestUrl = async ({
   credentialConfigurationSupported?: Record<string, CredentialConfigurationSupportedV1_0_13>;
   clientId?: string;
   version?: OpenId4VCIVersion;
+  headers?: Record<string, string>
 }): Promise<string> => {
   function removeDisplayAndValueTypes(obj: any) {
     const newObj = { ...obj };
@@ -207,7 +209,7 @@ export const createAuthorizationRequestUrl = async ({
         mode: JsonURIMode.X_FORM_WWW_URLENCODED,
         uriTypeProperties: ['client_id', 'request_uri', 'redirect_uri', 'scope', 'authorization_details', 'issuer_state'],
       }),
-      { contentType: 'application/x-www-form-urlencoded', accept: 'application/json' },
+      { contentType: 'application/x-www-form-urlencoded', accept: 'application/json', customHeaders: headers },
     );
     if (parResponse.errorBody || !parResponse.successBody) {
       if (parMode === PARMode.REQUIRE) {

@@ -6,7 +6,6 @@ import {
   CredentialResponse,
   DPoPResponseParams,
   getCredentialRequestForVersion,
-  getUniformFormat,
   isDeferredCredentialResponse,
   isValidURL,
   OID4VCICredentialFormat,
@@ -50,6 +49,9 @@ export type CreateCredentialRequestOpts<DIDDoc = DIDDocument> = {
   format?: CredentialFormat | OID4VCICredentialFormat;
   subjectIssuance?: ExperimentalSubjectIssuance;
   version: OpenId4VCIVersion;
+
+  // Used for the b' funke flow
+  additionalRequestClaims?: Record<string, unknown>
 };
 
 export async function buildProof<DIDDoc = DIDDocument>(
@@ -130,8 +132,10 @@ export class CredentialRequestClient {
     format?: CredentialFormat | OID4VCICredentialFormat;
     subjectIssuance?: ExperimentalSubjectIssuance;
     createDPoPOpts?: CreateDPoPClientOpts;
+    additionalRequestClaims?: Record<string, unknown>
+    customBody?: Record<string, unknown>
   }): Promise<OpenIDResponse<CredentialResponse, DPoPResponseParams> & { access_token: string }> {
-    const { credentialIdentifier, credentialTypes, proofInput, format, context, subjectIssuance } = opts;
+    const { credentialIdentifier, credentialTypes, proofInput, format, context, subjectIssuance, additionalRequestClaims, customBody } = opts;
 
     const request = await this.createCredentialRequest<DIDDoc>({
       proofInput,
@@ -141,8 +145,9 @@ export class CredentialRequestClient {
       version: this.version(),
       credentialIdentifier,
       subjectIssuance,
+      additionalRequestClaims
     });
-    return await this.acquireCredentialsUsingRequest(request, opts.createDPoPOpts);
+    return await this.acquireCredentialsUsingRequest(request, opts.createDPoPOpts, customBody);
   }
 
   public async acquireCredentialsUsingRequestWithoutProof(
@@ -155,13 +160,15 @@ export class CredentialRequestClient {
   public async acquireCredentialsUsingRequest(
     uniformRequest: UniformCredentialRequest,
     createDPoPOpts?: CreateDPoPClientOpts,
+    customBody?: Record<string, unknown>
   ): Promise<OpenIDResponse<CredentialResponse, DPoPResponseParams> & { access_token: string }> {
-    return await this.acquireCredentialsUsingRequestImpl(uniformRequest, createDPoPOpts);
+    return await this.acquireCredentialsUsingRequestImpl(uniformRequest, createDPoPOpts, customBody);
   }
 
   private async acquireCredentialsUsingRequestImpl(
     uniformRequest: UniformCredentialRequest & { proof?: ProofOfPossession },
     createDPoPOpts?: CreateDPoPClientOpts,
+    customBody?: Record<string, unknown>
   ): Promise<OpenIDResponse<CredentialResponse, DPoPResponseParams> & { access_token: string }> {
     if (this.version() < OpenId4VCIVersion.VER_1_0_13) {
       throw new Error('Versions below v1.0.13 (draft 13) are not supported by the V13 credential request client.');
@@ -178,7 +185,7 @@ export class CredentialRequestClient {
 
     let dPoP = createDPoPOpts ? await createDPoP(getCreateDPoPOptions(createDPoPOpts, credentialEndpoint, { accessToken: requestToken })) : undefined;
 
-    let response = (await post(credentialEndpoint, JSON.stringify(request), {
+    let response = (await post(credentialEndpoint, JSON.stringify(customBody ?? request), {
       bearerToken: requestToken,
       ...(dPoP && { customHeaders: { dpop: dPoP } }),
     })) as OpenIDResponse<CredentialResponse> & {
@@ -191,7 +198,7 @@ export class CredentialRequestClient {
       createDPoPOpts.jwtPayloadProps.nonce = retryWithNonce.dpopNonce;
       dPoP = await createDPoP(getCreateDPoPOptions(createDPoPOpts, credentialEndpoint, { accessToken: requestToken }));
 
-      response = (await post(credentialEndpoint, JSON.stringify(request), {
+      response = (await post(credentialEndpoint, JSON.stringify(customBody ?? request), {
         bearerToken: requestToken,
         ...(createDPoPOpts && { customHeaders: { dpop: dPoP } }),
       })) as OpenIDResponse<CredentialResponse> & {
@@ -264,7 +271,7 @@ export class CredentialRequestClient {
       proofInput?: ProofOfPossessionBuilder<DIDDoc> | ProofOfPossession;
     },
   ): Promise<CredentialRequestV1_0_13> {
-    const { proofInput, credentialIdentifier: credential_identifier } = opts;
+    const { proofInput, credentialIdentifier: credential_identifier, additionalRequestClaims } = opts;
     let proof: ProofOfPossession | undefined = undefined;
     if (proofInput) {
       proof = await buildProof(proofInput, opts);
@@ -278,12 +285,10 @@ export class CredentialRequestClient {
         ...(proof && { proof }),
       };
     }
-    const formatSelection = opts.format ?? this.credentialRequestOpts.format;
-
-    if (!formatSelection) {
+    const format = opts.format ?? this.credentialRequestOpts.format;
+    if (!format) {
       throw Error(`Format of credential to be issued is missing`);
     }
-    const format = getUniformFormat(formatSelection);
     const typesSelection =
       opts?.credentialTypes && (typeof opts.credentialTypes === 'string' || opts.credentialTypes.length > 0)
         ? opts.credentialTypes
@@ -330,6 +335,7 @@ export class CredentialRequestClient {
         ...(proof && { proof }),
         vct: types[0],
         ...opts.subjectIssuance,
+        ...(additionalRequestClaims ?? {})
       };
     } else if (format === 'mso_mdoc') {
       if (types.length > 1) {

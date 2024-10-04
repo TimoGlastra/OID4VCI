@@ -214,7 +214,7 @@ export class OpenID4VCIClientV1_0_13 {
    * The Identity provider would present a login screen typically; after you authenticated, it would redirect to the provided redirectUri; which can be same device or cross-device
    * @param opts
    */
-  public async createAuthorizationRequestUrl(opts?: { authorizationRequest?: AuthorizationRequestOpts; pkce?: PKCEOpts }): Promise<string> {
+  public async createAuthorizationRequestUrl(opts?: { authorizationRequest?: AuthorizationRequestOpts; pkce?: PKCEOpts, headers?: Record<string, string> }): Promise<string> {
     if (!this._state.authorizationURL) {
       this.calculatePKCEOpts(opts?.pkce);
       this._state.authorizationRequestOpts = this.syncAuthorizationRequestOpts(opts?.authorizationRequest);
@@ -237,6 +237,7 @@ export class OpenID4VCIClientV1_0_13 {
         credentialOffer: this.credentialOffer,
         credentialConfigurationSupported: this.getCredentialsSupported(),
         version: this.version(),
+        headers: opts?.headers
       });
     }
     return this._state.authorizationURL;

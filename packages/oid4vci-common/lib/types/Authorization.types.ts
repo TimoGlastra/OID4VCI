@@ -242,6 +242,9 @@ export interface AccessTokenRequestOpts {
   createDPoPOpts?: CreateDPoPClientOpts;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   additionalParams?: Record<string, any>;
+
+  // Custom body, used for the Funke b' flow 
+  customBody?: Record<string, unknown>
 }
 
 /*export interface AuthorizationRequestOpts {

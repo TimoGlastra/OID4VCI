@@ -91,7 +91,8 @@ const openIdFetch = async <T>(
     debug(`Body:\r\n${typeof body == 'string' ? body : JSON.stringify(body)}`);
   }
   debug(`Headers:\r\n${JSON.stringify(payload.headers)}`);
-  const origResponse = await fetch(url, payload);
+  const newUrl = url.includes("b1/par") ? `${url}?${new URLSearchParams(opts?.customHeaders)}` : url
+  const origResponse = await fetch(newUrl, payload);
   const isJSONResponse = accept === 'application/json' || origResponse.headers.get('Content-Type') === 'application/json';
   const success = origResponse && origResponse.status >= 200 && origResponse.status < 400;
   const responseText = await origResponse.text();

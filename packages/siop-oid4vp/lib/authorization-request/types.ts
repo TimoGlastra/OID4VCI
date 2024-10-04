@@ -62,6 +62,9 @@ interface AuthorizationRequestCommonOpts<CT extends ClaimPayloadCommonOpts> {
   payload?: AuthorizationRequestPayloadOpts<CT>
   requestObject: RequestObjectOpts<CT>
   uriScheme?: Schema | string // Use a custom scheme for the URI. By default openid:// will be used
+
+  // Additional payload claims, used for the funke b' flow
+  additionalPayloadClaims?: Record<string, unknown>
 }
 
 export type AuthorizationRequestOptsVID1 = AuthorizationRequestCommonOpts<ClaimPayloadOptsVID1>

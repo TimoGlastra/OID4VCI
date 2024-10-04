@@ -235,6 +235,9 @@ export class RP {
     requestByReferenceURI?: string
     responseURIType?: ResponseURIType
     responseURI?: string
+
+    // Additional payload claims. Used for b' flow
+    additionalPayloadClaims?: Record<string, unknown>
   }): CreateAuthorizationRequestOpts {
     const nonceWithTarget =
       typeof opts.nonce === 'string'
@@ -284,7 +287,7 @@ export class RP {
       }
     }
 
-    const newOpts = { ...this._createRequestOptions, version }
+    const newOpts = { ...this._createRequestOptions, version, additionalPayloadClaims: opts.additionalPayloadClaims }
     newOpts.requestObject = { ...newOpts.requestObject, jwtIssuer: opts.jwtIssuer }
 
     newOpts.requestObject.payload = newOpts.requestObject.payload ?? ({} as RequestObjectPayloadOpts<ClaimPayloadCommonOpts>)

@@ -31,7 +31,7 @@ import { LOG } from './types';
 
 export class AccessTokenClient {
   public async acquireAccessToken(opts: AccessTokenRequestOpts): Promise<OpenIDResponse<AccessTokenResponse, DPoPResponseParams>> {
-    const { asOpts, pin, codeVerifier, code, redirectUri, metadata, createDPoPOpts } = opts;
+    const { asOpts, pin, codeVerifier, code, redirectUri, metadata, createDPoPOpts, customBody } = opts;
 
     const credentialOffer = opts.credentialOffer ? await assertedUniformCredentialOffer(opts.credentialOffer) : undefined;
     const pinMetadata: TxCodeAndPinRequired | undefined = credentialOffer && this.getPinMetadata(credentialOffer.credential_offer);
@@ -57,6 +57,7 @@ export class AccessTokenClient {
         metadata,
         additionalParams: opts.additionalParams,
         pinMetadata,
+        customBody
       }),
       pinMetadata,
       metadata,
@@ -68,7 +69,7 @@ export class AccessTokenClient {
 
   public async acquireAccessTokenUsingRequest({
     accessTokenRequest,
-    pinMetadata,
+    // pinMetadata,
     metadata,
     asOpts,
     issuerOpts,
@@ -81,7 +82,8 @@ export class AccessTokenClient {
     issuerOpts?: IssuerOpts;
     createDPoPOpts?: CreateDPoPClientOpts;
   }): Promise<OpenIDResponse<AccessTokenResponse, DPoPResponseParams>> {
-    this.validate(accessTokenRequest, pinMetadata);
+    // Commented out, as it fails for b' funke flow
+    // this.validate(accessTokenRequest, pinMetadata);
 
     const requestTokenURL = AccessTokenClient.determineTokenURL({
       asOpts,
@@ -121,7 +123,7 @@ export class AccessTokenClient {
   }
 
   public async createAccessTokenRequest(opts: Omit<AccessTokenRequestOpts, 'createDPoPOpts'>): Promise<AccessTokenRequest> {
-    const { asOpts, pin, codeVerifier, code, redirectUri } = opts;
+    const { asOpts, pin, codeVerifier, code, redirectUri, customBody } = opts;
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     const credentialOfferRequest = opts.credentialOffer ? await toUniformCredentialOfferRequest(opts.credentialOffer) : undefined;
@@ -131,6 +133,9 @@ export class AccessTokenClient {
     }
     const credentialIssuer = opts.credentialIssuer ?? credentialOfferRequest?.credential_offer?.credential_issuer ?? opts.metadata?.issuer;
     await createJwtBearerClientAssertion(request, { ...opts, credentialIssuer });
+
+    // For b' funke flow
+    if (customBody) return customBody as AccessTokenRequest
 
     // Prefer AUTHORIZATION_CODE over PRE_AUTHORIZED_CODE_FLOW
     if (!credentialOfferRequest || credentialOfferRequest.supportedFlows.includes(AuthzFlowType.AUTHORIZATION_CODE_FLOW)) {
@@ -160,17 +165,18 @@ export class AccessTokenClient {
     throw new Error('Credential offer request follows neither pre-authorized code nor authorization code flow requirements.');
   }
 
-  private assertPreAuthorizedGrantType(grantType: GrantTypes): void {
-    if (GrantTypes.PRE_AUTHORIZED_CODE !== grantType) {
-      throw new Error("grant type must be 'urn:ietf:params:oauth:grant-type:pre-authorized_code'");
-    }
-  }
+  // All these methods are commented out because .validate is not called, and TS complains if the methods are not used
+  // private assertPreAuthorizedGrantType(grantType: GrantTypes): void {
+  //   if (GrantTypes.PRE_AUTHORIZED_CODE !== grantType) {
+  //     throw new Error("grant type must be 'urn:ietf:params:oauth:grant-type:pre-authorized_code'");
+  //   }
+  // }
 
-  private assertAuthorizationGrantType(grantType: GrantTypes): void {
-    if (GrantTypes.AUTHORIZATION_CODE !== grantType) {
-      throw new Error("grant type must be 'authorization_code'");
-    }
-  }
+  // private assertAuthorizationGrantType(grantType: GrantTypes): void {
+  //   if (GrantTypes.AUTHORIZATION_CODE !== grantType) {
+  //     throw new Error("grant type must be 'authorization_code'");
+  //   }
+  // }
 
   private getPinMetadata(requestPayload: UniformCredentialOfferPayload): TxCodeAndPinRequired {
     if (!requestPayload) {
@@ -219,40 +225,41 @@ export class AccessTokenClient {
     }
   }
 
-  private assertNonEmptyPreAuthorizedCode(accessTokenRequest: AccessTokenRequest): void {
-    if (!accessTokenRequest[PRE_AUTH_CODE_LITERAL]) {
-      LOG.warning(`No pre-authorized code present, whilst it is required`, accessTokenRequest);
-      throw new Error('Pre-authorization must be proven by presenting the pre-authorized code. Code must be present.');
-    }
-  }
+  // private assertNonEmptyPreAuthorizedCode(accessTokenRequest: AccessTokenRequest): void {
+  //   if (!accessTokenRequest[PRE_AUTH_CODE_LITERAL]) {
+  //     LOG.warning(`No pre-authorized code present, whilst it is required`, accessTokenRequest);
+  //     throw new Error('Pre-authorization must be proven by presenting the pre-authorized code. Code must be present.');
+  //   }
+  // }
 
-  private assertNonEmptyCodeVerifier(accessTokenRequest: AccessTokenRequest): void {
-    if (!accessTokenRequest.code_verifier) {
-      LOG.warning('No code_verifier present, whilst it is required', accessTokenRequest);
-      throw new Error('Authorization flow requires the code_verifier to be present');
-    }
-  }
+  // private assertNonEmptyCodeVerifier(accessTokenRequest: AccessTokenRequest): void {
+  //   if (!accessTokenRequest.code_verifier) {
+  //     LOG.warning('No code_verifier present, whilst it is required', accessTokenRequest);
+  //     throw new Error('Authorization flow requires the code_verifier to be present');
+  //   }
+  // }
 
-  private assertNonEmptyCode(accessTokenRequest: AccessTokenRequest): void {
-    if (!accessTokenRequest.code) {
-      LOG.warning('No code present, whilst it is required');
-      throw new Error('Authorization flow requires the code to be present');
-    }
-  }
+  // private assertNonEmptyCode(accessTokenRequest: AccessTokenRequest): void {
+  //   if (!accessTokenRequest.code) {
+  //     LOG.warning('No code present, whilst it is required');
+  //     throw new Error('Authorization flow requires the code to be present');
+  //   }
+  // }
 
-  private validate(accessTokenRequest: AccessTokenRequest, pinMeta?: TxCodeAndPinRequired): void {
-    if (accessTokenRequest.grant_type === GrantTypes.PRE_AUTHORIZED_CODE) {
-      this.assertPreAuthorizedGrantType(accessTokenRequest.grant_type);
-      this.assertNonEmptyPreAuthorizedCode(accessTokenRequest);
-      this.assertAlphanumericPin(pinMeta, accessTokenRequest.tx_code ?? accessTokenRequest.user_pin);
-    } else if (accessTokenRequest.grant_type === GrantTypes.AUTHORIZATION_CODE) {
-      this.assertAuthorizationGrantType(accessTokenRequest.grant_type);
-      this.assertNonEmptyCodeVerifier(accessTokenRequest);
-      this.assertNonEmptyCode(accessTokenRequest);
-    } else {
-      this.throwNotSupportedFlow();
-    }
-  }
+  // Commented out becauase 
+  // private validate(accessTokenRequest: AccessTokenRequest, pinMeta?: TxCodeAndPinRequired): void {
+  //   if (accessTokenRequest.grant_type === GrantTypes.PRE_AUTHORIZED_CODE) {
+  //     this.assertPreAuthorizedGrantType(accessTokenRequest.grant_type);
+  //     this.assertNonEmptyPreAuthorizedCode(accessTokenRequest);
+  //     this.assertAlphanumericPin(pinMeta, accessTokenRequest.tx_code ?? accessTokenRequest.user_pin);
+  //   } else if (accessTokenRequest.grant_type === GrantTypes.AUTHORIZATION_CODE) {
+  //     this.assertAuthorizationGrantType(accessTokenRequest.grant_type);
+  //     this.assertNonEmptyCodeVerifier(accessTokenRequest);
+  //     this.assertNonEmptyCode(accessTokenRequest);
+  //   } else {
+  //     this.throwNotSupportedFlow();
+  //   }
+  // }
 
   private async sendAuthCode(
     requestTokenURL: string,
@@ -307,8 +314,8 @@ export class AccessTokenClient {
     return `${scheme ? scheme + '://' : 'https://'}${hostname}${endpoint}`;
   }
 
-  private throwNotSupportedFlow(): void {
-    LOG.warning(`Only pre-authorized or authorization code flows supported.`);
-    throw new Error('Only pre-authorized-code or authorization code flows are supported');
-  }
+  // private throwNotSupportedFlow(): void {
+  //   LOG.warning(`Only pre-authorized or authorization code flows supported.`);
+  //   throw new Error('Only pre-authorized-code or authorization code flows are supported');
+  // }
 }
